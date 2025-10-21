@@ -1,0 +1,172 @@
+=================================================================
+QUICK DEPLOYMENT COMMANDS - Copy & Paste
+=================================================================
+
+STEP 1: Push to GitHub (Optional but Recommended)
+-----------------------------------------------------------------
+# Create repo on GitHub.com first, then:
+
+git remote add origin https://github.com/YOUR_USERNAME/auto-calling-system.git
+git branch -M main
+git push -u origin main
+
+
+STEP 2: Deploy Backend to Railway
+-----------------------------------------------------------------
+# Install CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Initialize project
+railway init
+
+# Add databases
+railway add --database postgres
+railway add --database redis
+
+# Set environment variables (REPLACE WITH YOUR VALUES!)
+railway variables set TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxx
+railway variables set TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxx
+railway variables set TWILIO_NUMBER=+1xxxxxxxxxx
+railway variables set NODE_ENV=production
+railway variables set PORT=3000
+railway variables set JWT_SECRET=$(openssl rand -base64 32)
+railway variables set JWT_EXPIRES_IN=24h
+railway variables set MAX_CONCURRENT_CALLS=10
+railway variables set CALL_RETRY_MAX_ATTEMPTS=3
+railway variables set CALL_RETRY_DELAY_MINUTES=60
+railway variables set AMD_TIMEOUT=30
+
+# Deploy
+railway up
+
+# Get your URL
+railway domain
+
+# Set webhook URLs (REPLACE WITH YOUR RAILWAY URL!)
+railway variables set WEBHOOK_BASE_URL=https://your-app.up.railway.app
+railway variables set BASE_URL=https://your-app.up.railway.app
+
+# Redeploy with new variables
+railway up
+
+# Run database migration
+railway run node src/database/migrate.js
+
+
+STEP 3: Deploy Frontend to Vercel
+-----------------------------------------------------------------
+cd frontend
+
+# Install Vercel CLI
+npm install -g vercel
+
+# Create production env (REPLACE WITH YOUR RAILWAY URL!)
+echo VITE_API_URL=https://your-app.up.railway.app/api > .env.production
+echo VITE_WS_URL=https://your-app.up.railway.app >> .env.production
+
+# Deploy
+vercel --prod
+
+# Follow the prompts
+
+
+STEP 4: Update Backend CORS
+-----------------------------------------------------------------
+# Add your Vercel URL to Railway (REPLACE WITH YOUR VERCEL URL!)
+railway variables set FRONTEND_URL=https://your-frontend.vercel.app
+
+
+STEP 5: Test
+-----------------------------------------------------------------
+# Test backend health
+curl https://your-app.up.railway.app/health
+
+# Open frontend
+# https://your-frontend.vercel.app
+
+# Login with:
+# Email: admin@test.com
+# Password: password123
+
+
+USEFUL COMMANDS
+-----------------------------------------------------------------
+# View Railway logs
+railway logs
+
+# View Railway variables
+railway variables
+
+# Connect to database
+railway run psql $DATABASE_URL
+
+# Run migration again
+railway run node src/database/migrate.js
+
+# Link to existing Railway project
+railway link
+
+# View Vercel logs
+vercel logs
+
+# View Vercel deployments
+vercel ls
+
+
+TWILIO WEBHOOK URLS (Configure in Twilio Console)
+-----------------------------------------------------------------
+Answer Webhook:
+https://your-app.up.railway.app/webhooks/twilio/answer
+
+Status Callback:
+https://your-app.up.railway.app/webhooks/twilio/status
+
+
+TROUBLESHOOTING
+-----------------------------------------------------------------
+# If webhooks fail, temporarily disable validation:
+railway variables set SKIP_TWILIO_VALIDATION=true
+
+# Check if services are running:
+curl https://your-app.up.railway.app/health
+
+# View detailed logs:
+railway logs --tail
+
+# Restart service:
+railway up --detach
+
+
+YOUR DEPLOYMENT URLS (Fill these in after deployment)
+-----------------------------------------------------------------
+Backend:  https://_________________________.up.railway.app
+Frontend: https://_________________________.vercel.app
+Health:   https://_________________________.up.railway.app/health
+
+
+CREDENTIALS
+-----------------------------------------------------------------
+Default Login:
+Email:    admin@test.com
+Password: password123
+
+Twilio (Get from console.twilio.com):
+Account SID:  AC_________________________________
+Auth Token:   __________________________________
+Phone Number: +1_______________________________
+
+
+NEXT STEPS AFTER DEPLOYMENT
+-----------------------------------------------------------------
+1. Change default admin password
+2. Configure Twilio webhooks (see URLs above)
+3. Test with sample CSV
+4. Create production campaigns
+5. Add real agents
+6. Monitor costs and usage
+
+
+=================================================================

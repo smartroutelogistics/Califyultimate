@@ -1,0 +1,277 @@
+================================================================================
+                    COPY-PASTE DEPLOYMENT
+         Just copy each section and paste into PowerShell
+================================================================================
+
+BEFORE YOU START:
+1. Get Twilio account: https://www.twilio.com/try-twilio (FREE)
+2. Write down:
+   - Account SID (starts with AC)
+   - Auth Token
+   - Phone Number (+1...)
+
+================================================================================
+SECTION 1: OPEN POWERSHELL AND LOGIN
+================================================================================
+
+Open PowerShell (Windows + X → PowerShell), then copy-paste:
+
+cd C:\Users\hp\Desktop\Calling
+railway login
+
+(Browser opens → Click "Sign in with GitHub" → Close browser when done)
+
+Wait until you see: "✓ Logged in"
+
+================================================================================
+SECTION 2: CREATE PROJECT AND ADD DATABASES
+================================================================================
+
+Copy-paste this ENTIRE block:
+
+railway init
+railway add
+railway add
+
+When prompted:
+- Project name: auto-calling-system (press Enter)
+- Empty project: Yes (press Enter)
+- First "add": Select PostgreSQL (use arrows, press Enter)
+- Second "add": Select Redis (use arrows, press Enter)
+
+Wait for databases to provision (30 seconds)
+
+================================================================================
+SECTION 3: SET TWILIO CREDENTIALS
+================================================================================
+
+*** REPLACE THE XXX WITH YOUR ACTUAL TWILIO VALUES ***
+
+Copy this, REPLACE XXX, then paste:
+
+railway variables set TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+railway variables set TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+railway variables set TWILIO_NUMBER=+1xxxxxxxxxx
+
+Example (use YOUR values):
+railway variables set TWILIO_ACCOUNT_SID=AC1234567890abcdef1234567890abcd
+railway variables set TWILIO_AUTH_TOKEN=abcdef1234567890abcdef12345678
+railway variables set TWILIO_NUMBER=+14155551234
+
+================================================================================
+SECTION 4: SET OTHER VARIABLES
+================================================================================
+
+Copy-paste this ENTIRE block (no changes needed):
+
+railway variables set NODE_ENV=production
+railway variables set PORT=3000
+railway variables set JWT_SECRET=change-this-to-random-string-later
+railway variables set JWT_EXPIRES_IN=24h
+railway variables set MAX_CONCURRENT_CALLS=10
+railway variables set CALL_RETRY_MAX_ATTEMPTS=3
+railway variables set CALL_RETRY_DELAY_MINUTES=60
+railway variables set AMD_TIMEOUT=30
+
+================================================================================
+SECTION 5: DEPLOY BACKEND
+================================================================================
+
+Copy-paste:
+
+railway up
+
+Wait 2-3 minutes for deployment to complete.
+You'll see: "✓ Deployment successful"
+
+================================================================================
+SECTION 6: GET YOUR URL
+================================================================================
+
+Copy-paste:
+
+railway domain
+
+You'll see a URL like: https://auto-calling-production-abc123.up.railway.app
+
+*** WRITE DOWN THIS URL! YOU NEED IT! ***
+
+Your URL: ____________________________________________
+
+================================================================================
+SECTION 7: SET WEBHOOK URLS
+================================================================================
+
+*** REPLACE YOUR_URL WITH THE URL FROM SECTION 6 ***
+
+Copy this, REPLACE YOUR_URL, then paste:
+
+railway variables set WEBHOOK_BASE_URL=https://YOUR_URL.up.railway.app
+railway variables set BASE_URL=https://YOUR_URL.up.railway.app
+
+Example (use YOUR url):
+railway variables set WEBHOOK_BASE_URL=https://auto-calling-production-abc123.up.railway.app
+railway variables set BASE_URL=https://auto-calling-production-abc123.up.railway.app
+
+Then redeploy:
+
+railway up
+
+Wait 1-2 minutes.
+
+================================================================================
+SECTION 8: CREATE DATABASE TABLES
+================================================================================
+
+Copy-paste:
+
+railway run node src/database/migrate.js
+
+You should see:
+✓ Schema created successfully
+✓ Sample tenant created
+✓ Sample admin user created
+  Email: admin@test.com
+  Password: password123
+
+*** IF YOU SEE THIS, YOUR BACKEND IS LIVE! ***
+
+================================================================================
+SECTION 9: TEST BACKEND
+================================================================================
+
+Open browser and go to (use YOUR url):
+
+https://YOUR_URL.up.railway.app/health
+
+Should show:
+{
+  "status": "healthy",
+  "service": "auto-calling-system",
+  "database": "connected"
+}
+
+*** BACKEND IS WORKING! ✓ ***
+
+================================================================================
+SECTION 10: DEPLOY FRONTEND
+================================================================================
+
+Copy-paste:
+
+npm install -g vercel
+
+Wait for installation.
+
+Then copy-paste:
+
+cd frontend
+
+*** REPLACE YOUR_RAILWAY_URL WITH YOUR ACTUAL URL ***
+
+echo VITE_API_URL=https://YOUR_RAILWAY_URL.up.railway.app/api > .env.production
+echo VITE_WS_URL=https://YOUR_RAILWAY_URL.up.railway.app >> .env.production
+
+Example (use YOUR url):
+echo VITE_API_URL=https://auto-calling-production-abc123.up.railway.app/api > .env.production
+echo VITE_WS_URL=https://auto-calling-production-abc123.up.railway.app >> .env.production
+
+Then deploy:
+
+vercel --prod
+
+When prompted:
+- Set up? Yes (press Enter)
+- Link existing? No (type N, press Enter)
+- Project name? auto-calling-frontend (press Enter)
+- Directory? . (press Enter)
+- Override? No (type N, press Enter)
+
+Wait 2-3 minutes.
+
+You'll get a URL like: https://auto-calling-frontend-xyz.vercel.app
+
+*** WRITE DOWN THIS URL! ***
+
+Your Frontend URL: ____________________________________________
+
+================================================================================
+SECTION 11: UPDATE BACKEND CORS
+================================================================================
+
+Go back to main folder:
+
+cd ..
+
+*** REPLACE YOUR_VERCEL_URL WITH YOUR ACTUAL VERCEL URL ***
+
+railway variables set FRONTEND_URL=https://YOUR_VERCEL_URL.vercel.app
+
+Example:
+railway variables set FRONTEND_URL=https://auto-calling-frontend-xyz.vercel.app
+
+================================================================================
+SECTION 12: CONFIGURE TWILIO
+================================================================================
+
+1. Go to: https://console.twilio.com
+2. Click: Phone Numbers → Manage → Active Numbers
+3. Click your phone number
+4. Under "Voice Configuration":
+
+   A Call Comes In:
+   - Webhook
+   - https://YOUR_RAILWAY_URL.up.railway.app/webhooks/twilio/answer
+   - HTTP POST
+
+   Status Callback URL:
+   - https://YOUR_RAILWAY_URL.up.railway.app/webhooks/twilio/status
+
+5. Click SAVE
+
+================================================================================
+SECTION 13: TEST EVERYTHING
+================================================================================
+
+Open browser:
+
+https://YOUR_VERCEL_URL.vercel.app
+
+Login:
+Email: admin@test.com
+Password: password123
+
+*** YOU SHOULD SEE THE DASHBOARD! ***
+
+================================================================================
+                           DEPLOYMENT COMPLETE! 🎉
+================================================================================
+
+Your Live System:
+
+Backend:  https://_________________.up.railway.app
+Frontend: https://_________________.vercel.app
+
+Default Login:
+Email: admin@test.com
+Password: password123
+
+Next Steps:
+1. Change admin password
+2. Create a campaign
+3. Upload sample_leads.csv
+4. Make test calls!
+
+================================================================================
+                              NEED HELP?
+================================================================================
+
+If something fails:
+- Check: railway logs
+- See: DEPLOYMENT_CHECKLIST.md for troubleshooting
+
+Twilio not working:
+- Verify webhook URLs are correct
+- Check: Console → Monitor → Debugger
+
+================================================================================

@@ -1,0 +1,130 @@
+============================================
+QUICK DEPLOY CHECKLIST
+============================================
+
+COPY-PASTE THESE COMMANDS ONE BY ONE
+
+============================================
+PREREQUISITES
+============================================
+
+[ ] Get Twilio Account (free): https://www.twilio.com/try-twilio
+[ ] Write down:
+    Account SID: AC_______________________
+    Auth Token:  ___________________________
+    Phone Number: +1_______________________
+
+============================================
+DEPLOYMENT COMMANDS
+============================================
+
+1. Open PowerShell
+
+2. Navigate to project:
+   cd C:\Users\hp\Desktop\Calling
+
+3. Login to Railway (browser opens):
+   railway login
+
+4. Initialize project:
+   railway init
+   (Name: auto-calling-system, Empty: Yes)
+
+5. Add PostgreSQL:
+   railway add
+   (Select PostgreSQL)
+
+6. Add Redis:
+   railway add
+   (Select Redis)
+
+7. Set Twilio variables (REPLACE XXX WITH YOUR VALUES):
+   railway variables set TWILIO_ACCOUNT_SID=ACxxx
+   railway variables set TWILIO_AUTH_TOKEN=xxx
+   railway variables set TWILIO_NUMBER=+1xxx
+
+8. Set other variables:
+   railway variables set NODE_ENV=production
+   railway variables set PORT=3000
+   railway variables set JWT_SECRET=change-this-later
+   railway variables set JWT_EXPIRES_IN=24h
+   railway variables set MAX_CONCURRENT_CALLS=10
+   railway variables set CALL_RETRY_MAX_ATTEMPTS=3
+   railway variables set CALL_RETRY_DELAY_MINUTES=60
+   railway variables set AMD_TIMEOUT=30
+
+9. Deploy:
+   railway up
+
+10. Generate domain:
+    railway domain
+    (COPY THE URL!)
+
+11. Set webhooks (REPLACE YOUR_URL):
+    railway variables set WEBHOOK_BASE_URL=https://YOUR_URL.up.railway.app
+    railway variables set BASE_URL=https://YOUR_URL.up.railway.app
+
+12. Redeploy:
+    railway up
+
+13. Migrate database:
+    railway run node src/database/migrate.js
+
+14. Test (open in browser):
+    https://YOUR_URL.up.railway.app/health
+
+============================================
+FRONTEND DEPLOYMENT
+============================================
+
+15. Install Vercel:
+    npm install -g vercel
+
+16. Go to frontend:
+    cd frontend
+
+17. Set config (REPLACE YOUR_RAILWAY_URL):
+    echo VITE_API_URL=https://YOUR_URL.up.railway.app/api > .env.production
+    echo VITE_WS_URL=https://YOUR_URL.up.railway.app >> .env.production
+
+18. Deploy:
+    vercel --prod
+    (Follow prompts, name: auto-calling-frontend)
+
+19. Update CORS:
+    cd ..
+    railway variables set FRONTEND_URL=https://YOUR_VERCEL_URL.vercel.app
+
+============================================
+TWILIO CONFIGURATION
+============================================
+
+20. Go to: https://console.twilio.com
+    → Phone Numbers → Your Number
+
+    Set Webhooks:
+    Answer: https://YOUR_RAILWAY_URL.up.railway.app/webhooks/twilio/answer
+    Status: https://YOUR_RAILWAY_URL.up.railway.app/webhooks/twilio/status
+
+============================================
+TEST
+============================================
+
+21. Open: https://YOUR_VERCEL_URL.vercel.app
+    Login: admin@test.com / password123
+
+============================================
+DONE! 🎉
+============================================
+
+Your URLs:
+Backend:  https://________________.up.railway.app
+Frontend: https://________________.vercel.app
+
+Next Steps:
+1. Change admin password
+2. Create campaign
+3. Upload sample_leads.csv
+4. Make test calls!
+
+============================================

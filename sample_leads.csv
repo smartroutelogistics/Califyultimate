@@ -1,0 +1,6 @@
+first_name,last_name,phone,country,type,priority,do_not_call,notes
+Ali,Khan,+923001234567,PK,broker,high,false,"Preferred afternoon calls"
+Sara,Ahmed,+14155552671,US,carrier,normal,false,"VIP customer - handle with care"
+John,Doe,+447911123456,GB,broker,low,false,"Call after 10am local time"
+Maria,Garcia,+14085551234,US,broker,normal,false,"Spanish speaking preferred"
+Ahmed,Hassan,+971501234567,AE,carrier,high,false,"Available 9am-5pm GST"
